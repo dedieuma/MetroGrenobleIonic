@@ -1,0 +1,8 @@
+{
+  "name": "MetroMobilite",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "ionic-angular",
+  "pro_id": "95a5c0dd"
+}

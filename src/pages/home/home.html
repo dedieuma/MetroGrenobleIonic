@@ -1,0 +1,70 @@
+<!-- AIzaSyCsZp65IlSTSasUflusoRyxJh-roaZL8kk -->
+
+<ion-header>
+  <ion-navbar>
+    <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>Home</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <div class="line">
+    <ion-card class="home-card one">
+      <div class="img-zone">
+        <img src="https://image.flaticon.com/icons/png/512/66/66462.png" />
+      </div>
+      <ion-card-content>
+        <ion-card-title>
+          Tramway
+        </ion-card-title>
+        <p>Tous les horaires de trams</p>
+      </ion-card-content>
+
+
+    </ion-card>
+
+
+    <ion-card class="home-card">
+      <div class="img-zone">
+        <img src="https://image.flaticon.com/icons/svg/60/60741.svg" />
+      </div>
+      <ion-card-content>
+        <ion-card-title>
+          Bus
+        </ion-card-title>
+        <p>Tous les horaires de bus</p>
+      </ion-card-content>
+
+
+    </ion-card>
+
+  </div>
+
+  <div class="line">
+    <ion-card class="home-card one">
+      <div class="img-zone">
+        <img src="https://image.flaticon.com/icons/svg/149/149654.svg"/>
+      </div>
+      <ion-card-content>
+        <ion-card-title>
+          Arrêts enregistrés
+        </ion-card-title>
+        <p>Tous les arrêts enregistrés</p>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="home-card" (click)="test()">
+        <div class="img-zone">
+            <img src="https://image.flaticon.com/icons/svg/34/34250.svg"/>
+          </div>
+          <ion-card-content>
+            <ion-card-title>
+              Carte
+            </ion-card-title>
+            <p>Visualiser les arrêts</p>
+          </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
