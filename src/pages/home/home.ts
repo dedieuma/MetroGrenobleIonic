@@ -1,3 +1,4 @@
+import { MapPage } from './../map/map';
 import { ListPage } from './../list/list';
 import { Component } from '@angular/core';
 import { NavController, MenuController } from 'ionic-angular';
@@ -12,8 +13,8 @@ export class HomePage {
 
   }
 
-  test(){
-    this.navCtrl.setRoot(ListPage);
+  toMap(){
+    this.navCtrl.setRoot(MapPage);
   }
 
 }

@@ -1,6 +1,8 @@
+import { Line } from './../../Interfaces/Line';
 import { TransportLine } from './../../Interfaces/TransportLine';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { LoadingController } from 'ionic-angular';
 
 /*
   Generated class for the MapProvider provider.
@@ -11,13 +13,28 @@ import { Injectable } from '@angular/core';
 @Injectable()
 export class MapProvider {
 
-  constructor(public http: HttpClient) {
+  constructor(public http: HttpClient, public loadingCtrl: LoadingController) {
+
+    
     
   }
 
-  async getMapTest() : Promise<TransportLine>{
-    const response = await this.http.get<TransportLine>("https://data.metromobilite.fr/api/lines/poly?types=ligne&codes=SEM_C1");
+  async getLines() : Promise<Line[]> {
+    let url = "https://data.metromobilite.fr/api/routers/default/index/routes";
+    console.log("Asking "+url+"...");
+    const response = await this.http.get<Line[]>(url);
     return response.toPromise();
   }
+
+  async getTransportLine(id: string) : Promise<TransportLine>{
+    let url = "https://data.metromobilite.fr/api/lines/poly?types=ligne&codes="+id;
+    console.log("Asking "+url+"...");
+    const response = await this.http.get<TransportLine>(url);
+    return response.toPromise();
+  }
+
+
+
+  
 
 }
