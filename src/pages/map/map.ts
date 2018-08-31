@@ -39,7 +39,6 @@ export class MapPage {
   lines: Line[];
   loading: Loading;
   polyIdTlDictionnary: Map<string, Polyline>;
-  snippet: HtmlInfoWindow;
 
 
   constructor(public navCtrl: NavController,
@@ -52,21 +51,11 @@ export class MapPage {
     this.polyIdTlDictionnary = new Map();
     this.tramArray = [];
     this.busArray = [];
-    this.snippet = new HtmlInfoWindow();
+    
   }
 
   ionViewDidLoad() {
     this.loadMap();
-    var now = new Date(), then = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      0, 0, 0),
-      diff = now.getTime() / 1000 - then.getTime() / 1000;
-
-    console.log("now ", now.getTime() / 1000)
-    console.log("then", then.getTime() / 1000)
-    console.log("diff", diff)
 
   }
 
@@ -281,27 +270,39 @@ export class MapPage {
     stationLocationMapping.forEach(async station => {
 
       this.map.addMarker({
-        //title: station.stopName,
+        title: station.stopName,
         icon: this.rgbToHex(element.features[0].properties.COULEUR),
-        position: station.position
+        position: station.position,
+        snippet: "Patientez..."
 
-      }).then(async (marker) => {
-        let stop: FilteredStopTimes = await this.mapProvider.getStopTimesOnStation(element.features[0].properties.CODE.replace('_', ':'), station);
+      }).then((marker) => {
 
+        
 
         //marker.setSnippet("Direction " + stop.direction1.desc + "\n\r\n " + this.getTimeSinceMidnight(stop.direction1.times[0].realtimeDeparture) + "\n\rDirection " + stop.direction2.desc + "\n\r\n " + this.getTimeSinceMidnight(stop.direction2.times[0].realtimeDeparture));
 
-        marker.on(GoogleMapsEvent.MARKER_CLICK).subscribe(() => {
-          this.snippet.close();
-          let content :string = "Direction " + stop.direction1.desc + "\n" + this.getTimeSinceMidnight(stop.direction1.times[0].realtimeDeparture) + "\n\rDirection " + stop.direction2.desc + "\n " + this.getTimeSinceMidnight(stop.direction2.times[0].realtimeDeparture);
-          this.snippet.setContent((content), {
-            width: "200px",
-            height: "50px",
-            font_size: "15px"
-          });
-          this.snippet.open(marker);
+        marker.on(GoogleMapsEvent.MARKER_CLICK).subscribe(async () => {
+          marker.hideInfoWindow();
+          marker.setSnippet("Patientez...")
+          marker.showInfoWindow();
+
+
+          let stop: FilteredStopTimes = await this.mapProvider.getStopTimesOnStation(element.features[0].properties.CODE.replace('_', ':'), station);
+          marker.hideInfoWindow()
+          marker.setSnippet(stop.direction1.desc + " -> " + this.getTimeSinceMidnight(stop.direction1.times[0].realtimeDeparture) + "<br />" + stop.direction2.desc + " -> " + this.getTimeSinceMidnight(stop.direction2.times[0].realtimeDeparture));
+          // this.snippet.close();
+          
+          // let content :string = "Direction " + stop.direction1.desc + "\n" + this.getTimeSinceMidnight(stop.direction1.times[0].realtimeDeparture) + "\n\rDirection " + stop.direction2.desc + "\n " + this.getTimeSinceMidnight(stop.direction2.times[0].realtimeDeparture);
+          // this.snippet.setContent((content), {
+          //   width: "200px",
+          //   height: "50px",
+          //   font_size: "15px"
+          // });
+          // this.snippet.open(marker);
+          marker.showInfoWindow();
+          console.log("stop for the line", element.features[0].properties.CODE.replace('_', ':'), "and the station", station.stopName, " : ", stop)
         })
-        console.log("stop for the line", element.features[0].properties.CODE.replace('_', ':'), "and the station", station.stopName, " : ", stop)
+        
       })
       // marker.on(GoogleMapsEvent.MARKER_CLICK).subscribe(() => {
       //   alert(station.stopName);
@@ -341,9 +342,9 @@ export class MapPage {
 
 
     this.map = GoogleMaps.create('map_canvas', mapOptions);
-    this.map.on(GoogleMapsEvent.MAP_CLICK).subscribe(() => {
-      this.snippet.close();
-    })
+    // this.map.on(GoogleMapsEvent.MAP_CLICK).subscribe(() => {
+    //   this.snippet.close();
+    // })
 
   }
 
