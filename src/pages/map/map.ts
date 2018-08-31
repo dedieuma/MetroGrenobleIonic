@@ -1,3 +1,5 @@
+import { FilteredStopTimes } from './../../Interfaces/StopTime';
+import { StationLocation } from './../../Interfaces/StationLocation';
 import { Line } from './../../Interfaces/Line';
 import { TransportLine } from './../../Interfaces/TransportLine';
 import { MapProvider } from './../../providers/map/map';
@@ -16,7 +18,8 @@ import {
   Environment,
   Encoding,
   ILatLng,
-  Polyline
+  Polyline,
+  HtmlInfoWindow
 } from '@ionic-native/google-maps';
 
 declare var google;
@@ -36,6 +39,7 @@ export class MapPage {
   lines: Line[];
   loading: Loading;
   polyIdTlDictionnary: Map<string, Polyline>;
+  snippet: HtmlInfoWindow;
 
 
   constructor(public navCtrl: NavController,
@@ -48,10 +52,22 @@ export class MapPage {
     this.polyIdTlDictionnary = new Map();
     this.tramArray = [];
     this.busArray = [];
+    this.snippet = new HtmlInfoWindow();
   }
 
   ionViewDidLoad() {
     this.loadMap();
+    var now = new Date(), then = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0, 0, 0),
+      diff = now.getTime() / 1000 - then.getTime() / 1000;
+
+    console.log("now ", now.getTime() / 1000)
+    console.log("then", then.getTime() / 1000)
+    console.log("diff", diff)
+
   }
 
   /// Show A Loading on the screen
@@ -116,7 +132,7 @@ export class MapPage {
   /// configures the alert panel, which gives the choice of a line
   // TODO : upgrade this to only load the API line data once
   private configureAlert(transportationTitle: any, transportationMode: any) {
-    
+
     // Title of the alert
     this.alert.setTitle(transportationTitle);
 
@@ -171,7 +187,7 @@ export class MapPage {
     return this.tramArray.concat(this.busArray);
   }
 
-  
+
 
   // drawPolylines of the given id Lines
   async drawPolyline(id: string[]) {
@@ -222,7 +238,7 @@ export class MapPage {
     }
 
 
-    
+
 
     this.map.clear();
     this.polyIdTlDictionnary.clear();
@@ -234,25 +250,71 @@ export class MapPage {
       let coordinates: ILatLng[] = Encoding.decodePath(element.features[0].properties.shape[0]);
 
       // RGB Number of the drawing line
-      let lineColor: number[] = element.features[0].properties.COULEUR.split(',').map(Number);
+
 
 
       this.map.addPolyline({
         points: coordinates,
         // color:this.tl.features[0].properties.COULEUR,
-        color: this.rgbToHex(lineColor[0], lineColor[1], lineColor[2]),
+        color: this.rgbToHex(element.features[0].properties.COULEUR),
         width: 3,
         geodesic: true,
-  
+
       }).then((polyline) => {
         this.polyIdTlDictionnary.set(element.features[0].properties.id, polyline);
       })
+
+      this.drawTransportLineMarkers(element);
     });
 
     this.dismissLoading();
 
     console.log("currentTL", this.currentTransportLines);
     console.log("current dictionnary", this.polyIdTlDictionnary);
+  }
+
+
+  async drawTransportLineMarkers(element: TransportLine) {
+    let stationLocationMapping: Array<StationLocation> = await this.mapProvider.getTimeSheetsStopLocation(element);
+
+    console.log("stationLocationMapping", stationLocationMapping);
+    stationLocationMapping.forEach(async station => {
+
+      this.map.addMarker({
+        //title: station.stopName,
+        icon: this.rgbToHex(element.features[0].properties.COULEUR),
+        position: station.position
+
+      }).then(async (marker) => {
+        let stop: FilteredStopTimes = await this.mapProvider.getStopTimesOnStation(element.features[0].properties.CODE.replace('_', ':'), station);
+
+
+        //marker.setSnippet("Direction " + stop.direction1.desc + "\n\r\n " + this.getTimeSinceMidnight(stop.direction1.times[0].realtimeDeparture) + "\n\rDirection " + stop.direction2.desc + "\n\r\n " + this.getTimeSinceMidnight(stop.direction2.times[0].realtimeDeparture));
+
+        marker.on(GoogleMapsEvent.MARKER_CLICK).subscribe(() => {
+          this.snippet.close();
+          let content :string = "Direction " + stop.direction1.desc + "\n" + this.getTimeSinceMidnight(stop.direction1.times[0].realtimeDeparture) + "\n\rDirection " + stop.direction2.desc + "\n " + this.getTimeSinceMidnight(stop.direction2.times[0].realtimeDeparture);
+          this.snippet.setContent((content), {
+            width: "200px",
+            height: "50px",
+            font_size: "15px"
+          });
+          this.snippet.open(marker);
+        })
+        console.log("stop for the line", element.features[0].properties.CODE.replace('_', ':'), "and the station", station.stopName, " : ", stop)
+      })
+      // marker.on(GoogleMapsEvent.MARKER_CLICK).subscribe(() => {
+      //   alert(station.stopName);
+      // })
+
+
+
+    });
+
+
+
+
+
   }
 
 
@@ -279,27 +341,23 @@ export class MapPage {
 
 
     this.map = GoogleMaps.create('map_canvas', mapOptions);
-
-
-
-  }
-
-  onMarker(marker: Marker) {
-    marker.one(GoogleMapsEvent.MARKER_CLICK).then(() => {
-      alert("click !");
+    this.map.on(GoogleMapsEvent.MAP_CLICK).subscribe(() => {
+      this.snippet.close();
     })
+
   }
 
 
-
-  
   // Converts the 3 parameter number into an #RGB string
-  rgbToHex(r, g, b) : string {
+  rgbToHex(rgb: string): string {
+
+    let lineColor: number[] = rgb.split(',').map(Number);
+
     function componentToHex(c) {
       var hex = c.toString(16);
       return hex.length == 1 ? "0" + hex : hex;
     }
-    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+    return "#" + componentToHex(lineColor[0]) + componentToHex(lineColor[1]) + componentToHex(lineColor[2]);
   }
 
   replaceDDotToUnderscore(str: string) {
@@ -310,6 +368,41 @@ export class MapPage {
     for (let i = 0; i < id.length; i++) {
       id[i] = id[i].replace(/:/g, "_");
     }
+  }
+
+  getTimeSinceMidnight(timeDeparture: number): string {
+
+
+    let now = new Date(),
+      midnight = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        0, 0, 0),
+      diff = now.getTime() / 1000 - midnight.getTime() / 1000;
+
+    return toStringDate(timeDeparture - diff);
+
+    function toStringDate(timeDifference: number): string {
+      if (timeDifference < 0) {
+        return "API error, please retry"
+      }
+      timeDifference = Math.ceil(timeDifference);
+      let res: string = "";
+      let hours = Math.floor(timeDifference / 3600) | 0;
+      let minutes = Math.floor((timeDifference - (hours * 3600)) / 60) | 0;
+      let seconds = timeDifference - (hours * 3600) - (minutes * 60);
+      if (hours > 0)
+        res += hours + " heures "
+      if (minutes > 0)
+        res += minutes + " minutes "
+      if (seconds > 0)
+        res += seconds + " secondes "
+
+      return res;
+    }
+
+
   }
 
 
