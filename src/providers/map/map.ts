@@ -23,11 +23,24 @@ export class MapProvider {
 
   }
 
-  async getLines(): Promise<Line[]> {
+  async getLinesPromise(): Promise<Line[]> {
     let url = "https://data.metromobilite.fr/api/routers/default/index/routes";
     console.log("Asking " + url + "...");
     const response = await this.http.get<Line[]>(url);
     return response.toPromise();
+  }
+
+  async getLines(transportationMode): Promise<Line[]> {
+    let lines: Line[]=  await this.getLinesPromise()
+    // Filtering the lines to get only the good transportation mode
+    lines = lines.filter((item) => {
+      return item.type == transportationMode;
+    }).sort((a, b) => {
+      if (a.shortName < b.shortName) return -1;
+      else return 1;
+    })
+
+    return lines;
   }
 
   async getTransportLine(id: string): Promise<TransportLine> {

@@ -1,3 +1,4 @@
+import { TilesPage } from './../pages/tiles/tiles';
 import { MapProvider } from './../providers/map/map';
 import { MapPage } from './../pages/map/map';
 import { BrowserModule } from '@angular/platform-browser';
@@ -18,7 +19,8 @@ import { HttpClientModule } from '@angular/common/http';
     MyApp,
     HomePage,
     ListPage,
-    MapPage
+    MapPage,
+    TilesPage
   ],
   imports: [
     BrowserModule,
@@ -30,15 +32,15 @@ import { HttpClientModule } from '@angular/common/http';
     MyApp,
     HomePage,
     ListPage,
-    MapPage
+    MapPage,
+    TilesPage
   ],
   providers: [
     StatusBar,
     SplashScreen,
     GoogleMaps,
     MapProvider,
-    {provide: ErrorHandler, useClass: IonicErrorHandler},
-    MapProvider
+    {provide: ErrorHandler, useClass: IonicErrorHandler}
   ]
 })
 export class AppModule {}

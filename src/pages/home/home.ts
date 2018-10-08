@@ -1,3 +1,4 @@
+import { TilesPage } from './../tiles/tiles';
 import { MapPage } from './../map/map';
 import { ListPage } from './../list/list';
 import { Component } from '@angular/core';
@@ -15,6 +16,12 @@ export class HomePage {
 
   toMap(){
     this.navCtrl.setRoot(MapPage);
+  }
+
+  toTiles(transportationType: string){
+    this.navCtrl.setRoot(TilesPage, {
+      transportationType: "TRAM"
+    });
   }
 
 }

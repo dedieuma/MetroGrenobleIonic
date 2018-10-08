@@ -51,7 +51,7 @@ export class MapPage {
     this.polyIdTlDictionnary = new Map();
     this.tramArray = [];
     this.busArray = [];
-    
+
   }
 
   ionViewDidLoad() {
@@ -98,18 +98,11 @@ export class MapPage {
 
     // Calling API to get the lines
     this.showLoading()
-    this.lines = await this.mapProvider.getLines();
+    this.lines = await this.mapProvider.getLines(transportationMode);
     this.dismissLoading();
 
-    // Filtering the lines to get only the good transportation mode
-    this.lines = this.lines.filter((item) => {
-      return item.type == transportationMode;
-    }).sort((a, b) => {
-      if (a.shortName < b.shortName) return -1;
-      else return 1;
-    })
+    
 
-    console.log(this.lines);
 
     // Setting up the alert panel
     this.alert = this.alertCtrl.create();
@@ -145,7 +138,6 @@ export class MapPage {
       text: 'Confirmer',
       handler: (data: string[]) => {
         //this.lineChoice = data;
-        console.log(data);
         this.drawPolyline(this.setupIdData(data, transportationMode));
       }
     });
@@ -214,10 +206,8 @@ export class MapPage {
       // Adding the polyline only if the item is not present into the currentTransportLines
       for (let element of this.currentTransportLines) {
         if (!element.features.find((feature) => {
-          console.log(feature.properties.id + " = " + item + " ? "); console.log(feature.properties.id == item);
           return feature.properties.id == item;
         })) {
-          console.log("pushing " + item);
           let getTl: TransportLine = await this.mapProvider.getTransportLine(item);
           this.currentTransportLines.push(getTl);
 
@@ -277,7 +267,7 @@ export class MapPage {
 
       }).then((marker) => {
 
-        
+
 
         //marker.setSnippet("Direction " + stop.direction1.desc + "\n\r\n " + this.getTimeSinceMidnight(stop.direction1.times[0].realtimeDeparture) + "\n\rDirection " + stop.direction2.desc + "\n\r\n " + this.getTimeSinceMidnight(stop.direction2.times[0].realtimeDeparture));
 
@@ -291,7 +281,7 @@ export class MapPage {
           marker.hideInfoWindow()
           marker.setSnippet(stop.direction1.desc + " -> " + this.getTimeSinceMidnight(stop.direction1.times[0].realtimeDeparture) + "<br />" + stop.direction2.desc + " -> " + this.getTimeSinceMidnight(stop.direction2.times[0].realtimeDeparture));
           // this.snippet.close();
-          
+
           // let content :string = "Direction " + stop.direction1.desc + "\n" + this.getTimeSinceMidnight(stop.direction1.times[0].realtimeDeparture) + "\n\rDirection " + stop.direction2.desc + "\n " + this.getTimeSinceMidnight(stop.direction2.times[0].realtimeDeparture);
           // this.snippet.setContent((content), {
           //   width: "200px",
@@ -302,7 +292,7 @@ export class MapPage {
           marker.showInfoWindow();
           console.log("stop for the line", element.features[0].properties.CODE.replace('_', ':'), "and the station", station.stopName, " : ", stop)
         })
-        
+
       })
       // marker.on(GoogleMapsEvent.MARKER_CLICK).subscribe(() => {
       //   alert(station.stopName);
